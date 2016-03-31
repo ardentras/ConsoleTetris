@@ -191,6 +191,41 @@ void Board::MoveRight()
 
 void Board::RotLeft()
 {
+	unsigned char masked_tile = 0;
+	int count = 0;
+
+	for (int i = 0; i < FIELD_SIZE; i++)
+	{
+		masked_tile = m_field[i] & 0x0F;
+		if (masked_tile == 0x08)
+		{
+			unsigned char tile = ((m_field[i] & 0x70) >> 4) - 1;
+			switch (tile)
+			{
+			case 0:		// I
+
+				break;
+			case 1:		// O
+				
+				break;
+			case 2:		// T
+				
+				break;
+			case 3:		// L
+				
+				break;
+			case 4:		// J
+				
+				break;
+			case 5:		// S
+				
+				break;
+			case 6:		// Z
+				
+				break;
+			}
+		}
+	}
 }
 
 void Board::RotRight()
