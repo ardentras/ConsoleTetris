@@ -18,9 +18,13 @@ public:
 	void DrawField();
 	void DrawBoard();
 	void DropTile();
+	void MoveLeft();
+	void MoveRight();
+	void RotLeft();
+	void RotRight();
 	void MoveTile(int dir);
 	void SpawnTet();
-	void AddToBoard(int grid[]);
+	void AddToBoard(int grid[], unsigned char col);
 	
 	bool GetGO();
 	void SetGO(bool go);

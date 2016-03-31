@@ -90,13 +90,12 @@ void Board::DropTile()
 {
 	unsigned char masked_tile = 0;
 	int collision_pt = 0;
-	int count = 0;
 	bool spawn_next = false;
 
 	for (int i = FIELD_SIZE - 1; i >= 0; i--)
 	{
 		masked_tile = m_field[i] & 0x0F;
-		if (masked_tile == 0x08 && count < 4)
+		if (masked_tile == 0x08)
 		{
 			if (spawn_next)
 			{
@@ -109,7 +108,7 @@ void Board::DropTile()
 				if (i < ROW_LEN * 2)
 					m_gameover = true;
 			}
-			else if (i < FIELD_SIZE - ROW_LEN - 1 && m_field[i + ROW_LEN] == 0)
+			else if (i < FIELD_SIZE - ROW_LEN && m_field[i + ROW_LEN] == 0)
 			{
 				m_field[i + ROW_LEN] = m_field[i];
 				m_field[i] = 0;
@@ -121,7 +120,6 @@ void Board::DropTile()
 				i = FIELD_SIZE - 1;
 				spawn_next = true;
 			}
-			count++;
 		}
 	}
 
@@ -129,39 +127,96 @@ void Board::DropTile()
 		SpawnTet();
 }
 
-void Board::MoveTile(int dir)
+void Board::MoveLeft()
 {
 	unsigned char masked_tile = 0;
 	int count = 0;
+	for (int i = 0; i < FIELD_SIZE; i++)
+	{
+		masked_tile = m_field[i] & 0x0F;
+		if (masked_tile == 0x08 && m_field[i - 1] == 0 && i % 10 != 0)
+		{
+			m_field[i - 1] = m_field[i];
+			m_field[i] = 0;
+			count++;
+		}
+		else if (masked_tile == 0x08)
+		{
+			while (count > 0)
+			{
+				i--;
+				masked_tile = m_field[i] & 0x0F;
+				if (masked_tile == 0x08)
+				{
+					m_field[i + 1] = m_field[i];
+					m_field[i] = 0;
+					count--;
+				}
+			}
+			i = FIELD_SIZE;
+		}
+	}
+}
 
+void Board::MoveRight()
+{
+	unsigned char masked_tile = 0;
+	int count = 0;
+	for (int i = FIELD_SIZE - 1; i >= 0; i--)
+	{
+		masked_tile = m_field[i] & 0x0F;
+		if (masked_tile == 0x08 && m_field[i + 1] == 0 && (i - 9) % 10 != 0)
+		{
+			m_field[i + 1] = m_field[i];
+			m_field[i] = 0;
+			count++;
+		}
+		else if (masked_tile == 0x08)
+		{
+			while (count > 0)
+			{
+				i++;
+				masked_tile = m_field[i] & 0x0F;
+				if (masked_tile == 0x08)
+				{
+					m_field[i - 1] = m_field[i];
+					m_field[i] = 0;
+					count--;
+				}
+			}
+			i = -1;
+		}
+	}
+}
+
+void Board::RotLeft()
+{
+}
+
+void Board::RotRight()
+{
+}
+
+void Board::MoveTile(int dir)
+{
 	switch (dir)
 	{
 	case 1:
-		for (int i = 0; i < FIELD_SIZE; i++)
-		{
-			masked_tile = m_field[i] & 0x0F;
-			if (masked_tile == 0x08 && count < 4)
-			{
-				m_field[i - 1] = m_field[i];
-				m_field[i] = 0;
-				count++;
-			}
-		}
+		MoveLeft();
 		break;
 	case 2:
 		// TODO
 		break;
 	case 3:
-		for (int i = FIELD_SIZE - 1; i >= 0; i--)
-		{
-			masked_tile = m_field[i] & 0x0F;
-			if (masked_tile == 0x08 && count < 4)
-			{
-				m_field[i + 1] = m_field[i];
-				m_field[i] = 0;
-				count++;
-			}
-		}
+		MoveRight();
+		break;
+	case 4:
+		// Rotate Counter-Clockwise
+		RotLeft();
+		break;
+	case 5:
+		// Rotate Clockwise
+		RotRight();
 		break;
 	default:
 		break;
@@ -254,16 +309,16 @@ void Board::SpawnTet()
 		break;
 	}
 
-	AddToBoard(grid);
+	AddToBoard(grid, static_cast<unsigned char>(randVal + 1) << 4);
 }
 
-void Board::AddToBoard(int grid[])
+void Board::AddToBoard(int grid[], unsigned char col)
 {
 	int pos = 0;
 	for (int i = 0; i < 8; i += 2)
 	{
 		pos = grid[i] + 4 + (grid[i + 1] * ROW_LEN);
-		m_field[pos] = 0xC8;
+		m_field[pos] = 0x88 | col;
 	}
 }
 

@@ -19,7 +19,7 @@ int main()
 		if (_kbhit() != 0)
 			ParseInput(b, _getch());
 
-		if (clock == 10000)
+		if (clock == 5000)
 		{
 			b.DropTile();
 			b.DrawBoard();
@@ -40,6 +40,10 @@ void ParseInput(Board & b, char in)
 		b.MoveTile(2);
 	else if (in == 'd')
 		b.MoveTile(3);
+	else if (in == '[')
+		b.MoveTile(4);
+	else if (in == ']')
+		b.MoveTile(5);
 
 	b.DrawField();
 }
