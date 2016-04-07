@@ -14,12 +14,12 @@ int main()
 	b.DrawBoard();
 	b.DrawField();
 	
-	while (!b.GetGO()) // And bingo was his name-o!
+	while (!b.GetGO())
 	{
 		if (_kbhit() != 0)
 			ParseInput(b, _getch());
 
-		if (clock == 5000)
+		if (clock == 10000)
 		{
 			b.DropTile();
 			b.DrawBoard();

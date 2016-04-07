@@ -91,9 +91,9 @@ void Board::DropTile()
 	unsigned char collision = CheckCollision() & COL_B;
 	if (collision != COL_B)
 	{
+		unsigned char tile = m_field[currCoords[0] + (currCoords[1] * ROW_LEN)];
 		ClrTile();
 
-		unsigned char tile = m_field[currCoords[0] + (currCoords[1] * ROW_LEN)];
 		int pos = 0;
 
 		for (int i = 0; i < NUM_COORD; i += 2)
@@ -104,7 +104,15 @@ void Board::DropTile()
 		}
 	}
 	else
+	{
+		int pos = 0;
+		for (int i = 0; i < NUM_COORD; i += 2)
+		{
+			pos = currCoords[i] + (currCoords[i + 1] * ROW_LEN);
+			m_field[pos] = m_field[pos] & 0xF0;
+		}
 		SpawnTet();
+	}
 }
 
 void Board::MoveLeft()
@@ -112,9 +120,9 @@ void Board::MoveLeft()
 	unsigned char collision = CheckCollision() & COL_L;
 	if (collision != COL_L)
 	{
+		unsigned char tile = m_field[currCoords[0] + (currCoords[1] * ROW_LEN)];
 		ClrTile();
 
-		unsigned char tile = m_field[currCoords[0] + (currCoords[1] * ROW_LEN)];
 		int pos = 0;
 
 		for (int i = 0; i < NUM_COORD; i += 2)
@@ -131,9 +139,9 @@ void Board::MoveRight()
 	unsigned char collision = CheckCollision() & COL_R;
 	if (collision != COL_R)
 	{
+		unsigned char tile = m_field[currCoords[0] + (currCoords[1] * ROW_LEN)];
 		ClrTile();
 
-		unsigned char tile = m_field[currCoords[0] + (currCoords[1] * ROW_LEN)];
 		int pos = 0;
 
 		for (int i = 0; i < NUM_COORD; i += 2)
@@ -147,7 +155,6 @@ void Board::MoveRight()
 
 void Board::RotLeft()
 {
-	
 }
 
 void Board::RotRight()
@@ -167,33 +174,34 @@ void Board::ClrTile()
 unsigned char Board::CheckCollision()
 {
 	unsigned char collision = 0;
-	int l = currCoords[0], r = 0, b = 0;
-	for (int i = 0; i < NUM_COORD; i += 2)
-	{
-		if (currCoords[i] < l)
-			l = currCoords[i];
-		if (currCoords[i] > r)
-			r = currCoords[i];
-		if (currCoords[i + 1] > b)
-			b = currCoords[i + 1];
-	}
 
 	int pos = 0;
-	for (int i = 0; i < NUM_COORD; i += 2)
+	unsigned char masked_tile = 0;
+
+	for (int i = 0; i < FIELD_SIZE; i++)
 	{
-		pos = currCoords[i] + (currCoords[i + 1] * ROW_LEN);
-		if (currCoords[i] == l && (m_field[pos - 1] != 0 || currCoords[i] - 1 < 0))
-			collision |= COL_L;
-		if (currCoords[i] == l && (m_field[pos - 2] != 0 || currCoords[i] - 2 < 0))
-			collision |= COL_LL;
-		if (currCoords[i] == r && (m_field[pos + 1] != 0 || currCoords[i] + 1 > 9))
-			collision |= COL_R;
-		if (currCoords[i] == r && (m_field[pos + 2] != 0 || currCoords[i] + 2 > 9))
-			collision |= COL_RR;
-		if (currCoords[i + 1] == b && (m_field[pos + ROW_LEN] != 0 || pos + ROW_LEN > FIELD_SIZE))
-			collision |= COL_B;
-		if (currCoords[i + 1] == b && (m_field[pos + (ROW_LEN * 2)] != 0 || pos + (ROW_LEN * 2) > FIELD_SIZE))
-			collision |= COL_BB;
+		masked_tile = m_field[i] & 0x0F;
+		if (masked_tile == 0x08)
+		{
+			masked_tile = m_field[i - 1] & 0x88;
+			if (masked_tile == 0x80 || (i) % 10 == 0)
+				collision |= COL_L;
+			masked_tile = m_field[i - 2] & 0x88;
+			if (masked_tile == 0x80 || (i - 1) % 10 == 0)
+				collision |= COL_LL;
+			masked_tile = m_field[i + 1] & 0x88;
+			if (masked_tile == 0x80 || (i + 1) % 10 == 0)
+				collision |= COL_R;
+			masked_tile = m_field[i + 2] & 0x88;
+			if (masked_tile == 0x80 || (i + 2) % 10 == 0)
+				collision |= COL_RR;
+			masked_tile = m_field[i + 10] & 0x88;
+			if (masked_tile == 0x80 || (i + 10) > FIELD_SIZE)
+				collision |= COL_B;
+			masked_tile = m_field[i + 20] & 0x88;
+			if (masked_tile == 0x80 || (i + 20) > FIELD_SIZE)
+				collision |= COL_BB;
+		}
 	}
 
 	return collision;
@@ -236,6 +244,12 @@ void Board::SpawnTet()
 	switch (randVal)
 	{
 	case 0:			// I
+		/*
+		*	X
+		*	C
+		*	X
+		*	X
+		*/
 		currCoords[0] = 0;
 		currCoords[1] = 0;
 		currCoords[2] = 0;
@@ -256,16 +270,26 @@ void Board::SpawnTet()
 		currCoords[7] = 1;
 		break;
 	case 2:			// T
-		currCoords[0] = 0;
+		/*
+		*	XCX
+		*	 X
+		*/
+		currCoords[0] = -1;
 		currCoords[1] = 0;
-		currCoords[2] = -1;
-		currCoords[3] = 1;
-		currCoords[4] = 0;
-		currCoords[5] = 1;
-		currCoords[6] = 1;
+		currCoords[2] = 0;
+		currCoords[3] = 0;
+		currCoords[4] = 1;
+		currCoords[5] = 0;
+		currCoords[6] = 0;
 		currCoords[7] = 1;
 		break;
 	case 3:			// L
+		/*
+		*	X
+		*	C
+		*	X
+		*	X
+		*/
 		currCoords[0] = 0;
 		currCoords[1] = 0;
 		currCoords[2] = 0;
@@ -320,7 +344,7 @@ void Board::AddToBoard(unsigned char col)
 	{
 		currCoords[i] = currCoords[i] + 5;
 		pos = currCoords[i] + currCoords[i + 1] * ROW_LEN;
-		m_field[pos] = 0x80 | col;
+		m_field[pos] = 0x88 | col;
 	}
 }
 
