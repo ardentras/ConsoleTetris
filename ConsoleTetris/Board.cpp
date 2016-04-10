@@ -155,10 +155,104 @@ void Board::MoveRight()
 
 void Board::RotLeft()
 {
+	unsigned char tile = m_field[currCoords[0] + (currCoords[1] * ROW_LEN)];
+
+	if (tile == 0x98 || tile == 0xE8 || tile == 0xF8)
+	{
+		
+	}
+
+	if (tile != 0xA8)
+	{
+		int tempArr[NUM_COORD];
+
+		for (int i = 0; i < NUM_COORD; i++)
+			tempArr[i] = currCoords[i];
+		int pos = 0;
+
+		ClrTile();
+
+		int midX = currCoords[2];
+		int midY = currCoords[3];
+		int temp = 0;
+
+		for (int i = 0; i < NUM_COORD; i += 2)
+		{
+			currCoords[i] -= midX;
+			currCoords[i + 1] -= midY;
+
+			temp = currCoords[i];
+			currCoords[i] = currCoords[i + 1];
+			currCoords[i + 1] = temp * -1;
+
+			currCoords[i] += midX;
+			currCoords[i + 1] += midY;
+
+			if ((currCoords[i] < 0) || (currCoords[i] > 9) || (currCoords[i + 1] > FIELD_SIZE / ROW_LEN))
+			{
+				for (int i = 0; i < NUM_COORD; i++)
+					currCoords[i] = tempArr[i];
+				i = NUM_COORD;
+			}
+		}
+
+		for (int i = 0; i < NUM_COORD; i += 2)
+		{
+			pos = currCoords[i] + (currCoords[i + 1] * ROW_LEN);
+			m_field[pos] = tile;
+		}
+	}
 }
 
 void Board::RotRight()
 {
+	unsigned char tile = m_field[currCoords[0] + (currCoords[1] * ROW_LEN)];
+	
+	if (tile == 0x98 || tile == 0xE8 || tile == 0xF8)
+	{
+		
+	}
+	
+	if (tile != 0xA8)
+	{
+		int tempArr[NUM_COORD];
+
+		for (int i = 0; i < NUM_COORD; i++)
+			tempArr[i] = currCoords[i];
+		int pos = 0;
+
+		ClrTile();
+
+		int midX = currCoords[2];
+		int midY = currCoords[3];
+		int temp = 0;
+
+		for (int i = 0; i < NUM_COORD; i += 2)
+		{
+			currCoords[i] -= midX;
+			currCoords[i + 1] -= midY;
+
+			temp = currCoords[i];
+			currCoords[i] = currCoords[i + 1] * -1;
+			currCoords[i + 1] = temp;
+
+			currCoords[i] += midX;
+			currCoords[i + 1] += midY;
+
+			if ((currCoords[i] < 0) || (currCoords[i] > 9) || (currCoords[i + 1] > FIELD_SIZE / ROW_LEN))
+			{
+				for (int i = 0; i < NUM_COORD; i++)
+					currCoords[i] = tempArr[i];
+				i = NUM_COORD;
+			}
+		}
+
+		for (int i = 0; i < NUM_COORD; i += 2)
+		{
+			pos = currCoords[i] + (currCoords[i + 1] * ROW_LEN);
+			m_field[pos] = tile;
+		}
+	}
 }
 
 void Board::ClrTile()
@@ -186,21 +280,12 @@ unsigned char Board::CheckCollision()
 			masked_tile = m_field[i - 1] & 0x88;
 			if (masked_tile == 0x80 || (i) % 10 == 0)
 				collision |= COL_L;
-			masked_tile = m_field[i - 2] & 0x88;
-			if (masked_tile == 0x80 || (i - 1) % 10 == 0)
-				collision |= COL_LL;
 			masked_tile = m_field[i + 1] & 0x88;
 			if (masked_tile == 0x80 || (i + 1) % 10 == 0)
 				collision |= COL_R;
-			masked_tile = m_field[i + 2] & 0x88;
-			if (masked_tile == 0x80 || (i + 2) % 10 == 0)
-				collision |= COL_RR;
 			masked_tile = m_field[i + 10] & 0x88;
 			if (masked_tile == 0x80 || (i + 10) > FIELD_SIZE)
 				collision |= COL_B;
-			masked_tile = m_field[i + 20] & 0x88;
-			if (masked_tile == 0x80 || (i + 20) > FIELD_SIZE)
-				collision |= COL_BB;
 		}
 	}
 
@@ -251,13 +336,13 @@ void Board::SpawnTet()
 		*	X
 		*/
 		currCoords[0] = 0;
-		currCoords[1] = 0;
+		currCoords[1] = -1;
 		currCoords[2] = 0;
-		currCoords[3] = 1;
+		currCoords[3] = 0;
 		currCoords[4] = 0;
-		currCoords[5] = 2;
+		currCoords[5] = 1;
 		currCoords[6] = 0;
-		currCoords[7] = 3;
+		currCoords[7] = 2;
 		break;
 	case 1:			// O
 		currCoords[0] = 0;
@@ -287,39 +372,51 @@ void Board::SpawnTet()
 		/*
 		*	X
 		*	C
-		*	X
-		*	X
+		*	XX
 		*/
 		currCoords[0] = 0;
-		currCoords[1] = 0;
+		currCoords[1] = -1;
 		currCoords[2] = 0;
-		currCoords[3] = 1;
+		currCoords[3] = 0;
 		currCoords[4] = 0;
-		currCoords[5] = 2;
+		currCoords[5] = 1;
 		currCoords[6] = 1;
-		currCoords[7] = 2;
+		currCoords[7] = 1;
 		break;
 	case 4:			// J
-		currCoords[0] = 1;
-		currCoords[1] = 0;
-		currCoords[2] = 1;
-		currCoords[3] = 1;
+		/*
+		*	 X
+		*	 C
+		*	XX
+		*/
+		currCoords[0] = 0;
+		currCoords[1] = -1;
+		currCoords[2] = 0;
+		currCoords[3] = 0;
 		currCoords[4] = 0;
-		currCoords[5] = 2;
-		currCoords[6] = 1;
-		currCoords[7] = 2;
+		currCoords[5] = 1;
+		currCoords[6] = -1;
+		currCoords[7] = 1;
 		break;
 	case 5:			// S
-		currCoords[0] = 0;
+		/*
+		*	 CX
+		*	XX
+		*/
+		currCoords[0] = 1;
 		currCoords[1] = 0;
-		currCoords[2] = 1;
+		currCoords[2] = 0;
 		currCoords[3] = 0;
-		currCoords[4] = -1;
+		currCoords[4] = 0;
 		currCoords[5] = 1;
-		currCoords[6] = 0;
+		currCoords[6] = -1;
 		currCoords[7] = 1;
 		break;
 	case 6:			// Z
+		/*
+		*	XC
+		*	 XX
+		*/
 		currCoords[0] = -1;
 		currCoords[1] = 0;
 		currCoords[2] = 0;
