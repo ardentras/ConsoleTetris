@@ -9,7 +9,8 @@
 
 const int FIELD_SIZE = 220;
 const int ROW_LEN = 10;
-const int NUM_COORD = 8;
+
+class Tile;
 
 class Board
 {
@@ -18,26 +19,21 @@ private:
 	int m_lines;
 	int m_score;
 	unsigned char m_field[FIELD_SIZE];
-	int currCoords[8];
 	bool m_gameover;
+	Tile * m_tile;
 	Graphics g;
 public:
 	Board();
 	~Board();
 	void DrawField();
 	void DrawBoard();
-	void DropTile();
 	void ClrTile();
+	void DrawTile();
 	unsigned char CheckCollision();
-	void MoveLeft();
-	void MoveRight();
-	void RotLeft();
-	void RotRight();
 	void MoveTile(int dir);
-	void SpawnTet();
-	void AddToBoard(unsigned char col);
+	void SpawnTile();
 	
-	bool GetGO();
-	void SetGO(bool go);
+	bool GetGO() { return m_gameover; }
+	void SetGO(bool go) { m_gameover = go; }
 };
 

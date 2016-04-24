@@ -10,7 +10,7 @@ int main()
 	Board b;
 	long int clock = 0;
 
-	b.SpawnTet();
+	b.SpawnTile();
 	b.DrawBoard();
 	b.DrawField();
 	
@@ -21,7 +21,7 @@ int main()
 
 		if (clock == 10000)
 		{
-			b.DropTile();
+			b.MoveTile(0);
 			b.DrawBoard();
 			b.DrawField();
 			clock = 0;

@@ -6,6 +6,7 @@ using std::time;
 
 #include "Graphics.h"
 #include "Board.h"
+#include "Tile.h"
 
 Board::Board() : m_level(0), m_lines(0), m_score(0), m_gameover(false)
 {
@@ -15,6 +16,8 @@ Board::Board() : m_level(0), m_lines(0), m_score(0), m_gameover(false)
 
 Board::~Board()
 {
+	if (m_tile != nullptr)
+		delete m_tile;
 }
 
 void Board::DrawField()
@@ -86,182 +89,23 @@ void Board::DrawBoard()
 		cout << (char)219;
 }
 
-void Board::DropTile()
-{
-	unsigned char collision = CheckCollision() & COL_B;
-	if (collision != COL_B)
-	{
-		unsigned char tile = m_field[currCoords[0] + (currCoords[1] * ROW_LEN)];
-		ClrTile();
-
-		int pos = 0;
-
-		for (int i = 0; i < NUM_COORD; i += 2)
-		{
-			pos = currCoords[i] + (currCoords[i + 1] * ROW_LEN);
-			currCoords[i + 1] += 1;
-			m_field[pos + ROW_LEN] = tile;
-		}
-	}
-	else
-	{
-		int pos = 0;
-		for (int i = 0; i < NUM_COORD; i += 2)
-		{
-			pos = currCoords[i] + (currCoords[i + 1] * ROW_LEN);
-			m_field[pos] = m_field[pos] & 0xF0;
-		}
-		SpawnTet();
-	}
-}
-
-void Board::MoveLeft()
-{
-	unsigned char collision = CheckCollision() & COL_L;
-	if (collision != COL_L)
-	{
-		unsigned char tile = m_field[currCoords[0] + (currCoords[1] * ROW_LEN)];
-		ClrTile();
-
-		int pos = 0;
-
-		for (int i = 0; i < NUM_COORD; i += 2)
-		{
-			pos = currCoords[i] + (currCoords[i + 1] * ROW_LEN);
-			currCoords[i] -= 1;
-			m_field[pos - 1] = tile;
-		}
-	}
-}
-
-void Board::MoveRight()
-{
-	unsigned char collision = CheckCollision() & COL_R;
-	if (collision != COL_R)
-	{
-		unsigned char tile = m_field[currCoords[0] + (currCoords[1] * ROW_LEN)];
-		ClrTile();
-
-		int pos = 0;
-
-		for (int i = 0; i < NUM_COORD; i += 2)
-		{
-			pos = currCoords[i] + (currCoords[i + 1] * ROW_LEN);
-			currCoords[i] += 1;
-			m_field[pos + 1] = tile;
-		}
-	}
-}
-
-void Board::RotLeft()
-{
-	unsigned char tile = m_field[currCoords[0] + (currCoords[1] * ROW_LEN)];
-
-	if (tile == 0x98 || tile == 0xE8 || tile == 0xF8)
-	{
-		
-	}
-
-	if (tile != 0xA8)
-	{
-		int tempArr[NUM_COORD];
-
-		for (int i = 0; i < NUM_COORD; i++)
-			tempArr[i] = currCoords[i];
-		int pos = 0;
-
-		ClrTile();
-
-		int midX = currCoords[2];
-		int midY = currCoords[3];
-		int temp = 0;
-
-		for (int i = 0; i < NUM_COORD; i += 2)
-		{
-			currCoords[i] -= midX;
-			currCoords[i + 1] -= midY;
-
-			temp = currCoords[i];
-			currCoords[i] = currCoords[i + 1];
-			currCoords[i + 1] = temp * -1;
-
-			currCoords[i] += midX;
-			currCoords[i + 1] += midY;
-
-			if ((currCoords[i] < 0) || (currCoords[i] > 9) || (currCoords[i + 1] > FIELD_SIZE / ROW_LEN))
-			{
-				for (int i = 0; i < NUM_COORD; i++)
-					currCoords[i] = tempArr[i];
-				i = NUM_COORD;
-			}
-		}
-
-		for (int i = 0; i < NUM_COORD; i += 2)
-		{
-			pos = currCoords[i] + (currCoords[i + 1] * ROW_LEN);
-			m_field[pos] = tile;
-		}
-	}
-}
-
-void Board::RotRight()
-{
-	unsigned char tile = m_field[currCoords[0] + (currCoords[1] * ROW_LEN)];
-	
-	if (tile == 0x98 || tile == 0xE8 || tile == 0xF8)
-	{
-		
-	}
-	
-	if (tile != 0xA8)
-	{
-		int tempArr[NUM_COORD];
-
-		for (int i = 0; i < NUM_COORD; i++)
-			tempArr[i] = currCoords[i];
-		int pos = 0;
-
-		ClrTile();
-
-		int midX = currCoords[2];
-		int midY = currCoords[3];
-		int temp = 0;
-
-		for (int i = 0; i < NUM_COORD; i += 2)
-		{
-			currCoords[i] -= midX;
-			currCoords[i + 1] -= midY;
-
-			temp = currCoords[i];
-			currCoords[i] = currCoords[i + 1] * -1;
-			currCoords[i + 1] = temp;
-
-			currCoords[i] += midX;
-			currCoords[i + 1] += midY;
-
-			if ((currCoords[i] < 0) || (currCoords[i] > 9) || (currCoords[i + 1] > FIELD_SIZE / ROW_LEN))
-			{
-				for (int i = 0; i < NUM_COORD; i++)
-					currCoords[i] = tempArr[i];
-				i = NUM_COORD;
-			}
-		}
-
-		for (int i = 0; i < NUM_COORD; i += 2)
-		{
-			pos = currCoords[i] + (currCoords[i + 1] * ROW_LEN);
-			m_field[pos] = tile;
-		}
-	}
-}
-
 void Board::ClrTile()
 {
 	int pos = 0;
 	for (int i = 0; i < NUM_COORD; i += 2)
 	{
-		pos = currCoords[i] + (currCoords[i + 1] * ROW_LEN);
+		pos = m_tile->GetCoord(i) + (m_tile->GetCoord(i + 1) * ROW_LEN);
 		m_field[pos] = 0;
+	}
+}
+
+void Board::DrawTile()
+{
+	int pos = 0;
+	for (int i = 0; i < NUM_COORD; i += 2)
+	{
+		pos = m_tile->GetCoord(i) + (m_tile->GetCoord(i + 1) * ROW_LEN);
+		m_field[pos] = 0x88 | m_tile->GetCol();
 	}
 }
 
@@ -280,12 +124,21 @@ unsigned char Board::CheckCollision()
 			masked_tile = m_field[i - 1] & 0x88;
 			if (masked_tile == 0x80 || (i) % 10 == 0)
 				collision |= COL_L;
+			masked_tile = m_field[i - 2] & 0x88;
+			if (masked_tile == 0x80 || (i - 1) % 10 == 0)
+				collision |= COL_LL;
 			masked_tile = m_field[i + 1] & 0x88;
 			if (masked_tile == 0x80 || (i + 1) % 10 == 0)
 				collision |= COL_R;
+			masked_tile = m_field[i + 2] & 0x88;
+			if (masked_tile == 0x80 || (i + 2) % 10 == 0)
+				collision |= COL_RR;
 			masked_tile = m_field[i + 10] & 0x88;
 			if (masked_tile == 0x80 || (i + 10) > FIELD_SIZE)
 				collision |= COL_B;
+			masked_tile = m_field[i + 20] & 0x88;
+			if (masked_tile == 0x80 || (i + 20) > FIELD_SIZE)
+				collision |= COL_BB;
 		}
 	}
 
@@ -294,31 +147,74 @@ unsigned char Board::CheckCollision()
 
 void Board::MoveTile(int dir)
 {
+	ClrTile();
+	unsigned char collision = CheckCollision();
+
+	/*unsigned char collision = CheckCollision() & COL_B;
+	if (collision != COL_B)
+	{
+		unsigned char tile = m_field[coords[0] + (coords[1] * ROW_LEN)];
+		ClrTile();
+
+		int pos = 0;
+
+		for (int i = 0; i < NUM_COORD; i += 2)
+		{
+			pos = m_tile->GetCoord(i) + (m_tile->GetCoord(i + 1) * ROW_LEN);
+			m_tile->GetCoord(i + 1) += 1;
+			m_field[pos + ROW_LEN] = tile;
+		}
+	}
+	else
+	{
+		int pos = 0;
+		for (int i = 0; i < NUM_COORD; i += 2)
+		{
+			pos = m_tile->GetCoord(i) + (m_tile->GetCoord(i + 1) * ROW_LEN);
+			m_field[pos] = m_field[pos] & 0xF0;
+		}
+		SpawnTet();
+	}*/
+
+
 	switch (dir)
 	{
+	case 0:
+		if (collision & COL_B == 0)
+			m_tile->Drop();
+		else
+		{
+			DrawTile();
+			SpawnTile();
+		}
+		break;
 	case 1:
-		MoveLeft();
+		if (collision & COL_L == 0)
+			m_tile->MoveLeft();
 		break;
 	case 2:
 		// TODO
 		break;
 	case 3:
-		MoveRight();
+		if (collision & COL_R == 0)
+			m_tile->MoveRight();
 		break;
 	case 4:
 		// Rotate Counter-Clockwise
-		RotLeft();
+		m_tile->RotLeft();
 		break;
 	case 5:
 		// Rotate Clockwise
-		RotRight();
+		m_tile->RotRight();
 		break;
 	default:
 		break;
 	}
+
+	DrawTile();
 }
 
-void Board::SpawnTet()
+void Board::SpawnTile()
 {
 	int randVal = 0;
 
@@ -326,131 +222,6 @@ void Board::SpawnTet()
 
 	randVal = rand() % 6;
 
-	switch (randVal)
-	{
-	case 0:			// I
-		/*
-		*	X
-		*	C
-		*	X
-		*	X
-		*/
-		currCoords[0] = 0;
-		currCoords[1] = -1;
-		currCoords[2] = 0;
-		currCoords[3] = 0;
-		currCoords[4] = 0;
-		currCoords[5] = 1;
-		currCoords[6] = 0;
-		currCoords[7] = 2;
-		break;
-	case 1:			// O
-		currCoords[0] = 0;
-		currCoords[1] = 0;
-		currCoords[2] = 0;
-		currCoords[3] = 1;
-		currCoords[4] = 1;
-		currCoords[5] = 0;
-		currCoords[6] = 1;
-		currCoords[7] = 1;
-		break;
-	case 2:			// T
-		/*
-		*	XCX
-		*	 X
-		*/
-		currCoords[0] = -1;
-		currCoords[1] = 0;
-		currCoords[2] = 0;
-		currCoords[3] = 0;
-		currCoords[4] = 1;
-		currCoords[5] = 0;
-		currCoords[6] = 0;
-		currCoords[7] = 1;
-		break;
-	case 3:			// L
-		/*
-		*	X
-		*	C
-		*	XX
-		*/
-		currCoords[0] = 0;
-		currCoords[1] = -1;
-		currCoords[2] = 0;
-		currCoords[3] = 0;
-		currCoords[4] = 0;
-		currCoords[5] = 1;
-		currCoords[6] = 1;
-		currCoords[7] = 1;
-		break;
-	case 4:			// J
-		/*
-		*	 X
-		*	 C
-		*	XX
-		*/
-		currCoords[0] = 0;
-		currCoords[1] = -1;
-		currCoords[2] = 0;
-		currCoords[3] = 0;
-		currCoords[4] = 0;
-		currCoords[5] = 1;
-		currCoords[6] = -1;
-		currCoords[7] = 1;
-		break;
-	case 5:			// S
-		/*
-		*	 CX
-		*	XX
-		*/
-		currCoords[0] = 1;
-		currCoords[1] = 0;
-		currCoords[2] = 0;
-		currCoords[3] = 0;
-		currCoords[4] = 0;
-		currCoords[5] = 1;
-		currCoords[6] = -1;
-		currCoords[7] = 1;
-		break;
-	case 6:			// Z
-		/*
-		*	XC
-		*	 XX
-		*/
-		currCoords[0] = -1;
-		currCoords[1] = 0;
-		currCoords[2] = 0;
-		currCoords[3] = 0;
-		currCoords[4] = 0;
-		currCoords[5] = 1;
-		currCoords[6] = 1;
-		currCoords[7] = 1;
-		break;
-	default:
-		cout << "Error! Invalid value!" << endl;
-		break;
-	}
-
-	AddToBoard(static_cast<unsigned char>(randVal + 1) << 4);
-}
-
-void Board::AddToBoard(unsigned char col)
-{
-	int pos = 0;
-	for (int i = 0; i < NUM_COORD; i += 2)
-	{
-		currCoords[i] = currCoords[i] + 5;
-		pos = currCoords[i] + currCoords[i + 1] * ROW_LEN;
-		m_field[pos] = 0x88 | col;
-	}
-}
-
-bool Board::GetGO()
-{
-	return m_gameover;
-}
-
-void Board::SetGO(bool go)
-{
-	m_gameover = go;
+	delete m_tile;
+	m_tile = new Tile(randVal);
 }
